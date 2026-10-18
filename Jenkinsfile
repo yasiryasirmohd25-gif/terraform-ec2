@@ -60,3 +60,21 @@ pipeline {
         }
     }
 }
+
+
+stage('Terraform Destroy') {
+    steps {
+        input message: 'Are you sure you want to destroy the Terraform resources?',
+              ok: 'Destroy'
+
+        withCredentials([
+            usernamePassword(
+                credentialsId: 'aws-credentials',
+                usernameVariable: 'AWS_ACCESS_KEY_ID',
+                passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+            )
+        ]) {
+            sh 'terraform destroy -auto-approve'
+        }
+    }
+}
