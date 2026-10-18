@@ -11,7 +11,7 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                bat 'terraform init'
+                sh 'terraform init'
             }
         }
 
@@ -24,7 +24,7 @@ pipeline {
                         passwordVariable: 'AWS_SECRET_ACCESS_KEY'
                     )
                 ]) {
-                    bat 'terraform plan -out=tfplan'
+                    sh 'terraform plan -out=tfplan'
                 }
             }
         }
@@ -45,7 +45,7 @@ pipeline {
                         passwordVariable: 'AWS_SECRET_ACCESS_KEY'
                     )
                 ]) {
-                    bat 'terraform apply -auto-approve tfplan'
+                    sh 'terraform apply -auto-approve tfplan'
                 }
             }
         }
