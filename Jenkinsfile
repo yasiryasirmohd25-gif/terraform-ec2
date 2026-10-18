@@ -1,8 +1,8 @@
+
 pipeline {
     agent any
 
     stages {
-
         stage('Checkout') {
             steps {
                 checkout scm
@@ -11,46 +11,50 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                sh 'terraform init'
-            }
-        }
-
-        // stage('Terraform Format') {
-        //     steps {
-        //         sh 'terraform fmt -check'
-        //     }
-        // }
-
-        stage('Terraform Validate') {
-            steps {
-                sh 'terraform validate'
+                bat 'terraform init'
             }
         }
 
         stage('Terraform Plan') {
             steps {
-                sh 'terraform plan -out=tfplan'
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'aws-credentials',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
+                    bat 'terraform plan -out=tfplan'
+                }
             }
         }
 
         stage('Approval') {
             steps {
-                input message: 'Approve Terraform Apply?', ok: 'Approve'
+                input message: 'Approve Terraform changes?',
+                      ok: 'Apply'
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                sh 'terraform apply -auto-approve tfplan'
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'aws-credentials',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
+                    bat 'terraform apply -auto-approve tfplan'
+                }
             }
         }
     }
 
     post {
         success {
-            echo 'Terraform deployment successful!'
+            echo 'Terraform pipeline completed successfully!'
         }
-
         failure {
             echo 'Terraform pipeline failed!'
         }
